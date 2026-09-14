@@ -307,6 +307,7 @@ pub fn start_transcription_task<R: Runtime>(
                             }
                             Err(error @ TranscriptionError::EngineFailed(_)) => {
                                 stats.record_failure(WorkerFailureCategory::EngineFailed);
+                                warn!("Transcription engine failed: {}", error);
                                 let _ =
                                     app_clone.emit("transcription-warning", error.to_string());
                             }
