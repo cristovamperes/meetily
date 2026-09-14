@@ -297,7 +297,7 @@ impl ParakeetEngine {
             }
         };
 
-        log::info!("ParakeetEngine using models directory: {}", models_dir.display());
+        log::debug!("ParakeetEngine using models directory: {}", models_dir.display());
 
         // Create directory if it doesn't exist
         if !models_dir.exists() {
