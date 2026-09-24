@@ -8,6 +8,7 @@ import { useRecordingState, RecordingStatus } from '@/contexts/RecordingStateCon
 import { storageService } from '@/services/storageService';
 import { transcriptService } from '@/services/transcriptService';
 import Analytics from '@/lib/analytics';
+import { storePath } from '@/lib/storePath';
 import {
   applyPinnedSummaryLanguageToMeeting,
   detectAndCacheSummaryLanguage,
@@ -379,7 +380,7 @@ export function useRecordingStop(
 
             // Check for activation (first meeting)
             const { Store } = await import('@tauri-apps/plugin-store');
-            const store = await Store.load('analytics.json');
+            const store = await Store.load(await storePath('analytics.json'));
             const totalMeetings = await store.get<number>('total_meetings');
 
             if (totalMeetings === 1) {

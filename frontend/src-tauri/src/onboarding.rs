@@ -47,7 +47,7 @@ pub async fn load_onboarding_status<R: Runtime>(
     app: &AppHandle<R>,
 ) -> Result<OnboardingStatus> {
     // Try to load from Tauri store
-    let store = match app.store("onboarding-status.json") {
+    let store = match app.store(crate::test_data::store_path("onboarding-status.json")) {
         Ok(store) => store,
         Err(e) => {
             warn!("Failed to access onboarding store: {}, using defaults", e);
@@ -85,7 +85,7 @@ pub async fn save_onboarding_status<R: Runtime>(
           status.current_step, status.completed);
 
     // Get or create store
-    let store = app.store("onboarding-status.json")
+    let store = app.store(crate::test_data::store_path("onboarding-status.json"))
         .map_err(|e| anyhow::anyhow!("Failed to access onboarding store: {}", e))?;
 
     // Update last_updated timestamp
@@ -113,7 +113,7 @@ pub async fn reset_onboarding_status<R: Runtime>(
 ) -> Result<()> {
     info!("Resetting onboarding status");
 
-    let store = app.store("onboarding-status.json")
+    let store = app.store(crate::test_data::store_path("onboarding-status.json"))
         .map_err(|e| anyhow::anyhow!("Failed to access onboarding store: {}", e))?;
 
     // Clear the status key
@@ -138,7 +138,7 @@ pub async fn get_onboarding_status<R: Runtime>(
 
     // Return None if it's the default (never saved before)
     // Check if we have any saved data by seeing if the store has the key
-    let store = app.store("onboarding-status.json")
+    let store = app.store(crate::test_data::store_path("onboarding-status.json"))
         .map_err(|e| format!("Failed to access store: {}", e))?;
 
     if store.get("status").is_none() {

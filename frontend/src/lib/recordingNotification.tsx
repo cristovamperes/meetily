@@ -1,5 +1,6 @@
 import { toast } from 'sonner';
 import Analytics from '@/lib/analytics';
+import { storePath } from '@/lib/storePath';
 
 /**
  * Shows the recording notification toast with compliance message.
@@ -13,7 +14,7 @@ import Analytics from '@/lib/analytics';
 export async function showRecordingNotification(): Promise<void> {
   try {
     const { Store } = await import('@tauri-apps/plugin-store');
-    const store = await Store.load('preferences.json');
+    const store = await Store.load(await storePath('preferences.json'));
     const showNotification = await store.get<boolean>('show_recording_notification') ?? true;
 
     if (showNotification) {
@@ -39,7 +40,7 @@ export async function showRecordingNotification(): Promise<void> {
               onClick={async () => {
                 if (dontShowAgain) {
                   const { Store } = await import('@tauri-apps/plugin-store');
-                  const store = await Store.load('preferences.json');
+                  const store = await Store.load(await storePath('preferences.json'));
                   await store.set('show_recording_notification', false);
                   await store.save();
                 }

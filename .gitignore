@@ -4,6 +4,7 @@
 
 # Local-only NPU prototype, toolchains, caches, and build outputs
 /.local-tools/
+/.playwright-mcp/
 
 # dependencies
 /node_modules

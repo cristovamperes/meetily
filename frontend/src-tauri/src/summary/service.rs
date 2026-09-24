@@ -476,7 +476,7 @@ impl SummaryService {
         };
 
         // Get app data directory for BuiltInAI provider
-        let app_data_dir = _app.path().app_data_dir().ok();
+        let app_data_dir = crate::test_data::app_data_dir(_app.path()).ok();
 
         if let Some(code) = &summary_language {
             info!("📝 Summary language preference: {}", code);

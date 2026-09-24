@@ -51,6 +51,7 @@ pub mod openrouter;
 pub mod parakeet_engine;
 pub mod state;
 pub mod summary;
+pub mod test_data;
 pub mod tray;
 pub mod utils;
 pub mod whisper_engine;
@@ -445,6 +446,13 @@ pub fn get_language_preference_internal() -> Option<String> {
 }
 
 pub fn run() {
+    #[cfg(windows)]
+    if test_data::portable_dir().is_none()
+        || std::env::var_os("WEBVIEW2_USER_DATA_FOLDER").is_none()
+    {
+        eprintln!("NPU test app requires MEETILY_NPU_TEST_DIR and WEBVIEW2_USER_DATA_FOLDER");
+        return;
+    }
     log::set_max_level(log::LevelFilter::Info);
 
     let mut builder = tauri::Builder::default();

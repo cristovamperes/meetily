@@ -13,6 +13,8 @@ $env:MEETILY_WHISPER_NPU_SCRIPT = "$repo\scripts\whisper_npu_worker.py"
 $env:MEETILY_WHISPER_NPU_MODEL = "$repo\.local-tools\npu-prototype\model"
 ```
 
+For the fork's **Windows portable test build**, `tauri.windows.conf.json` sets a separate app identifier (`com.meetily.npu-test`). Start the portable executable only through the repo-local `.local-tools/run-npu-test.ps1` launcher after placing it under `.local-tools/portable/`. The launcher routes app data, recordings, models and the WebView2 profile under `.local-tools/npu-test-profile/`, and refuses to start without the required environment variables. Do not run the test executable directly, or install it over the normal Meetily app.
+
 In the new Meetily build, select **Local Whisper** as the transcription provider. The current UI still requires a downloaded GGML Whisper model for model readiness and CPU fallback. Parakeet and built-in summarization do not use this Whisper NPU worker. The worker is serialized and stays alive for repeated chunks; a failure or 150-second timeout kills it and retries the chunk with whisper.cpp. It accepts 16 kHz mono float PCM and handles up to 10 minutes per call. It runs locally without uploading audio.
 
 On this PC a synthetic 11-second sample transcribed in ~0.3–0.5 seconds on NPU versus ~1.5–2.0 seconds on CPU after model load; a repeated 44-second sample took ~1.7–2.6 seconds on NPU versus ~4.6–5.8 seconds on CPU. Initial model compilation took ~73 seconds, with later loads ~2 seconds. These numbers are not a real-meeting accuracy or latency guarantee.

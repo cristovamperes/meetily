@@ -7,6 +7,7 @@ import Analytics from '@/lib/analytics';
 import { toast } from 'sonner';
 import { useRecordingState } from '@/contexts/RecordingStateContext';
 import { useConfig } from '@/contexts/ConfigContext';
+import { storePath } from '@/lib/storePath';
 
 export interface RecordingPreferences {
   save_folder: string;
@@ -62,7 +63,7 @@ export function RecordingSettings({ onSave }: RecordingSettingsProps) {
     const loadNotificationPref = async () => {
       try {
         const { Store } = await import('@tauri-apps/plugin-store');
-        const store = await Store.load('preferences.json');
+        const store = await Store.load(await storePath('preferences.json'));
         const show = await store.get<boolean>('show_recording_notification') ?? true;
         setShowRecordingNotification(show);
       } catch (error) {
@@ -117,7 +118,7 @@ export function RecordingSettings({ onSave }: RecordingSettingsProps) {
     try {
       setShowRecordingNotification(enabled);
       const { Store } = await import('@tauri-apps/plugin-store');
-      const store = await Store.load('preferences.json');
+      const store = await Store.load(await storePath('preferences.json'));
       await store.set('show_recording_notification', enabled);
       await store.save();
       toast.success('Preference saved');
