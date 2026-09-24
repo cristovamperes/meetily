@@ -9,9 +9,7 @@ module.exports = {
   theme: {
   	extend: {
   		fontFamily: {
-  			sans: [
-  				'var(--font-source-sans-3)'
-  			]
+            sans: ['Segoe UI', 'Arial', 'sans-serif']
   		},
   		colors: {
   			background: 'hsl(var(--background))',
