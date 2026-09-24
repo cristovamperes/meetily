@@ -10,7 +10,8 @@ use std::{
 #[cfg(windows)]
 use std::os::windows::fs::MetadataExt;
 
-const WINDOWS_X64_TARGET: &str = "x86_64-pc-windows-msvc";
+const WINDOWS_X64_MSVC_TARGET: &str = "x86_64-pc-windows-msvc";
+const WINDOWS_X64_GNU_TARGET: &str = "x86_64-pc-windows-gnu";
 const ARCHIVE_URL: &str = "https://github.com/microsoft/onnxruntime/releases/download/v1.22.0/onnxruntime-win-x64-1.22.0.zip";
 const ARCHIVE_SHA256: &str = "174c616efc0271194488642a72f1a514e01487da4dfe84c49296d66e40ebe0da";
 const ARCHIVE_SIZE: u64 = 72_368_545;
@@ -50,8 +51,9 @@ pub fn ensure_onnxruntime_runtime() {
     println!("cargo:rerun-if-changed=binaries/onnxruntime");
 
     let target = env::var("TARGET").expect("TARGET environment variable not set");
-    if target != WINDOWS_X64_TARGET {
-        panic!("ONNX Runtime is bundled only for {WINDOWS_X64_TARGET}; got {target}");
+    // This DLL is loaded dynamically, so both x64 Windows Rust ABIs can use it.
+    if target != WINDOWS_X64_MSVC_TARGET && target != WINDOWS_X64_GNU_TARGET {
+        panic!("ONNX Runtime is bundled only for x64 Windows; got {target}");
     }
 
     let manifest_dir =

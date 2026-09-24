@@ -666,6 +666,13 @@ impl WhisperEngine {
     }
 
     pub async fn transcribe_audio(&self, audio_data: Vec<f32>, language: Option<String>) -> Result<String> {
+        #[cfg(windows)]
+        if let Some(result) = super::npu::try_transcribe(&audio_data, language.as_deref()).await {
+            match result {
+                Ok(text) => return Ok(text),
+                Err(error) => log::warn!("Whisper NPU unavailable; using whisper.cpp: {error}"),
+            }
+        }
         let ctx_lock = self.current_context.read().await;
         let ctx = ctx_lock.as_ref()
             .ok_or_else(|| anyhow!("No model loaded. Please load a model first."))?;

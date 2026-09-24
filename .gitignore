@@ -2,6 +2,9 @@
 
 /experiments
 
+# Local-only NPU prototype, toolchains, caches, and build outputs
+/.local-tools/
+
 # dependencies
 /node_modules
 **/models
