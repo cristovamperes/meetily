@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Info, Loader2, Copy, Check } from 'lucide-react';
 import { AnalyticsContext } from './AnalyticsProvider';
 import { load } from '@tauri-apps/plugin-store';
+import { storePath } from '@/lib/storePath';
 import { invoke } from '@tauri-apps/api/core';
 import { Analytics } from '@/lib/analytics';
 import AnalyticsDataModal from './AnalyticsDataModal';
@@ -75,7 +76,7 @@ export default function AnalyticsConsentSwitch() {
     setIsProcessing(true);
 
     try {
-      const store = await load('analytics.json', {
+      const store = await load(await storePath('analytics.json'), {
         autoSave: false,
         defaults: {
           analyticsOptedIn: false
