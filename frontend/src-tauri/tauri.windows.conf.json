@@ -1,5 +1,4 @@
 {
-  "identifier": "com.meetily.npu-test",
   "bundle": {
     "resources": {
       "templates": "templates",
