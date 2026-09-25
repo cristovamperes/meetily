@@ -541,8 +541,30 @@ impl WhisperEngine {
         repeated_words as f32 / total_words
     }
     
+    /// OpenVINO GenAI returns text, not Whisper token probabilities. Keep the
+    /// existing length-based confidence heuristic for the UI; it is not a
+    /// calibrated probability or a measure of the selected GGML model's quality.
+    #[cfg(windows)]
+    fn npu_text_with_confidence(text: &str, samples: usize) -> (String, f32, bool) {
+        let cleaned = Self::clean_repetitive_text(text.trim());
+        let confidence = if cleaned.is_empty() {
+            0.0
+        } else {
+            (cleaned.chars().count() as f32 / 100.0).min(0.9) + 0.1
+        };
+        (cleaned, confidence, samples < 15 * 16_000)
+    }
+
     /// Transcribe audio with streaming support for partial results and adaptive quality
     pub async fn transcribe_audio_with_confidence(&self, audio_data: Vec<f32>, language: Option<String>) -> Result<(String, f32, bool)> {
+        // Live recording, import and Enhance/retranscription use this method.
+        #[cfg(windows)]
+        if let Some(result) = super::npu::try_transcribe(&audio_data, language.as_deref()).await {
+            match result {
+                Ok(text) => return Ok(Self::npu_text_with_confidence(&text, audio_data.len())),
+                Err(error) => log::warn!("Whisper NPU unavailable; using whisper.cpp: {error}"),
+            }
+        }
         let ctx_lock = self.current_context.read().await;
         let ctx = ctx_lock.as_ref()
             .ok_or_else(|| anyhow!("No model loaded. Please load a model first."))?;
@@ -664,6 +686,14 @@ impl WhisperEngine {
         audio_data: Vec<f32>,
         language: Option<String>,
     ) -> Result<String> {
+        // Used by direct transcription and parallel Whisper processing.
+        #[cfg(windows)]
+        if let Some(result) = super::npu::try_transcribe(&audio_data, language.as_deref()).await {
+            match result {
+                Ok(text) => return Ok(Self::clean_repetitive_text(text.trim())),
+                Err(error) => log::warn!("Whisper NPU unavailable; using whisper.cpp: {error}"),
+            }
+        }
         let ctx_lock = self.current_context.read().await;
         let ctx = ctx_lock
             .as_ref()
@@ -1160,6 +1190,22 @@ mod tests {
     use tokio::net::TcpListener;
     use tokio::sync::oneshot;
     use tokio::time::{timeout, Duration};
+
+    #[cfg(windows)]
+    #[test]
+    fn npu_text_uses_the_existing_display_heuristic_and_partial_threshold() {
+        let (text, confidence, partial) =
+            WhisperEngine::npu_text_with_confidence("  Hello there  ", 14 * 16_000);
+        assert_eq!(text, "Hello there");
+        assert!((confidence - 0.21).abs() < 0.0001);
+        assert!(partial);
+
+        let (text, confidence, partial) =
+            WhisperEngine::npu_text_with_confidence("  ", 15 * 16_000);
+        assert_eq!(text, "");
+        assert_eq!(confidence, 0.0);
+        assert!(!partial);
+    }
 
     fn tiny_model(models: &[ModelInfo]) -> &ModelInfo {
         models

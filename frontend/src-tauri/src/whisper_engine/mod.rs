@@ -1,4 +1,6 @@
 pub mod whisper_engine;
+#[cfg(windows)]
+pub(crate) mod npu;
 pub mod acceleration;
 pub mod commands;
 pub mod system_monitor;
