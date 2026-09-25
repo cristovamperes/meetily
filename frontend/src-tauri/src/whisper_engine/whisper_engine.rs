@@ -550,6 +550,25 @@ impl WhisperEngine {
     
     /// Transcribe audio with streaming support for partial results and adaptive quality
     pub async fn transcribe_audio_with_confidence(&self, audio_data: Vec<f32>, language: Option<String>) -> Result<(String, f32, bool)> {
+        // Live recording, import and Enhance/retranscription all use this method.
+        // OpenVINO GenAI supplies text but no token confidence; use the same
+        // display-only text-length heuristic as the whisper.cpp path below.
+        #[cfg(windows)]
+        if let Some(result) = super::npu::try_transcribe(&audio_data, language.as_deref()).await {
+            match result {
+                Ok(text) => {
+                    let cleaned = Self::clean_repetitive_text(text.trim());
+                    let confidence = if cleaned.is_empty() {
+                        0.0
+                    } else {
+                        (cleaned.chars().count() as f32 / 100.0).min(0.9) + 0.1
+                    };
+                    let is_partial = audio_data.len() < 15 * 16_000;
+                    return Ok((cleaned, confidence, is_partial));
+                }
+                Err(error) => log::warn!("Whisper NPU unavailable; using whisper.cpp: {error}"),
+            }
+        }
         let ctx_lock = self.current_context.read().await;
         let ctx = ctx_lock.as_ref()
             .ok_or_else(|| anyhow!("No model loaded. Please load a model first."))?;
